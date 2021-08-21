@@ -10,7 +10,7 @@ circles = []
 while(cap.isOpened()):
     if (play):
         ret, frame = cap.read()
-        # if frame is read correctly ret is True
+        height, width = frame.shape[:2]
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
@@ -22,10 +22,14 @@ while(cap.isOpened()):
                     circles.pop(0)
         for circle in circles:
             # draw profile of centers.
-            center = (circle[0], circle[1])
-            radius = circle[2]
-            cv2.circle(frame, center, 1, (0, 100, 100), 3)
-            cv2.putText(frame, str(circle[2]), (circle[0] + 5, circle[1] + 5), cv2.FONT_HERSHEY_SIMPLEX,  0.5, (0, 100, 100), 1, cv2.LINE_AA)
+            center = (circle['pos'][0], circle['pos'][1])
+            radius = circle['pos'][2]
+            R = circle['color'][0]
+            G = circle['color'][1]
+            B = circle['color'][2]
+            print((R, G, B))
+            cv2.circle(frame, center, 1, (R, G, B), 3)
+            cv2.putText(frame, str(circle['pos'][2]), (circle['pos'][0] + 5, circle['pos'][1] + 5), cv2.FONT_HERSHEY_SIMPLEX,  0.5, (R, G, B), 1, cv2.LINE_AA)
     cv2.imshow('frame', frame)
     key = cv2.waitKey(1)
     if key == ord('q') or key == 27:  # Esc
