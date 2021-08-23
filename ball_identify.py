@@ -1,17 +1,40 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+from Trajectory import Trajectory
+import time
 def clusterCircle(buffer, circle):
-    for candidate in buffer:
-        if circle['colorName'] != candidate['colorName']:
-            # Different color, definitely not the same balls.
+    hasBeenIncluded = False
+    for trajectory in buffer:
+        if circle.color != trajectory.getLatestCircle().color:
+            # Different color, definitely not in same trajectory.
             continue
-        elif abs(circle['radius'] - candidate['radius']) >= 7:
-            # Too far way, obviously not the same balls.
+        elif abs(np.int16(circle.radius) - np.int16(trajectory.getLatestCircle().radius)) >= 7:
+            # Size differs a lot, obviously not in same trajectory.
             continue
-        elif abs(circle['pos'][0] - candidate['pos'][0]) >= 15 or abs(circle['pos'][1] - candidate['pos'][1]) >= 40:
-            # Adjacent center cannot be farther than x: 15, y: 40
+        elif abs(np.int16(circle.x) - np.int16(trajectory.getLatestCircle().x)) >= 15 or abs(np.int16(circle.y) - np.int16(trajectory.getLatestCircle().y)) >= 40:
+            # Adjacent center cannot be too far.
             continue
+        elif not trajectory.withinRange(circle):
+            # not within predicted profile
+            continue
+        else:
+            # New circle can be included in this existed trajectory.
+            trajectory.includeCircle(circle)
+            hasBeenIncluded = True
+
+    if not hasBeenIncluded:
+        # A new trajectory is created.
+        trajectory = Trajectory(init_circle=circle)
+        buffer.append(trajectory)
+
+def removeOldTrajectory(buffer):
+    # Only leaves those trajectories whose last update time are not too long ago.
+
+    buffer[:] = [trajectory for trajectory in buffer if not(time.time()-trajectory.lastUpdateTime >= 1)]
+
+
+
+
 
 def findID(newCircle, historyCircles, height, width):
 
