@@ -20,6 +20,7 @@ def clusterCircle(buffer, circle):
         else:
             # New circle can be included in this existed trajectory.
             trajectory.includeCircle(circle)
+            trajectory.fitCurve()
             hasBeenIncluded = True
 
     if not hasBeenIncluded:
@@ -28,8 +29,7 @@ def clusterCircle(buffer, circle):
         buffer.append(trajectory)
 
 def removeOldTrajectory(buffer):
-    # Only leaves those trajectories whose last update time are not too long ago.
-
+    # Only leave those trajectories whose last update time are not too long ago.
     buffer[:] = [trajectory for trajectory in buffer if not(time.time()-trajectory.lastUpdateTime >= 1)]
 
 

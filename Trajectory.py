@@ -1,15 +1,12 @@
 import time
+from fitting import solvePara
 
 class Trajectory:
     def __init__(self, init_circle):
         self.circles = [init_circle]
         self.predicted_profile = None
         self.lastUpdateTime = time.time()
-
-
-    def getOldestCircle(self):
-        return self.circles[0]
-
+        self.fittingParams = [0, 0, 0]
     def getLatestCircle(self):
         return self.circles[-1]
 
@@ -17,9 +14,16 @@ class Trajectory:
         self.circles.append(new_circle)
         self.lastUpdateTime = time.time()
 
-    def generateProfile(self):
-        def fitCenter(circles):
-            pass
-        pass
+    def fitCurve(self):
+        X = [circle.x for circle in self.circles]
+        Y = [circle.y for circle in self.circles]
+        if len(X) >= 3:
+            a, b, c = solvePara(X, Y, self.fittingParams)
+            self.fittingParams = [a, b, c]
+        elif len(X) == 2:
+            m, b = solvePara(X, Y, self.fittingParams)
+            self.fittingParams = [0, m, b]
+        elif len(X) <= 1:
+            return 
     def withinRange(self, new_circle):
         return True
