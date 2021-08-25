@@ -31,7 +31,7 @@ def clusterCircle(buffer, circle):
 def removeTrajectory(buffer, reason):
     if reason == 'old':
         # Only leave those trajectories whose last update time are not too long ago.
-        buffer[:] = [trajectory for trajectory in buffer if not(time.time()-trajectory.lastUpdateTime >= 1)]
+        buffer[:] = [trajectory for trajectory in buffer if not(time.time()-trajectory.lastUpdateTime >= 2)]
     elif reason == 'onGround':
         buffer[:] = [trajectory for trajectory in buffer if not trajectory.onGround]
 

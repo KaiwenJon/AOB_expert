@@ -18,8 +18,8 @@ class Trajectory:
     def includeCircle(self, new_circle):
         self.xDirection = np.sign(np.int16(new_circle.x) - np.int16(self.getLatestCircle().x))
         self.yDirection = np.sign(np.int16(new_circle.y) - np.int16(self.getLatestCircle().y))
-        print(self.yDirection, self.lastYDirection)
-        if self.yDirection * self.lastYDirection < 0 and self.getLatestCircle().y > 440:
+        # print(self.yDirection, self.lastYDirection)
+        if self.yDirection * self.lastYDirection < 0 and self.getLatestCircle().y > 530 - self.getLatestCircle().radius:
             self.onGround = True
         self.lastYDirection = self.yDirection
         self.circles.append(new_circle)
@@ -31,10 +31,7 @@ class Trajectory:
         if len(X) >= 3:
             a, b, c = solvePara(X, Y, self.fittingParams)
             self.fittingParams = [a, b, c]
-        elif len(X) == 2:
-            m, b = solvePara(X, Y, self.fittingParams)
-            self.fittingParams = [0, m, b]
-        elif len(X) <= 1:
+        elif len(X) <= 2:
             return 
     def withinRange(self, new_circle):
         return True

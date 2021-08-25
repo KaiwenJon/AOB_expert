@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import time
+import math
 from ball_detection import findCircles
 from ball_identify import findID, clusterCircle, removeTrajectory
 cap = cv2.VideoCapture('AOB.mp4')
@@ -48,10 +49,45 @@ while(cap.isOpened()):
             a, b, c = trajectory.fittingParams
             for circle in trajectory.circles:
                 cv2.circle(stats, (circle.x, circle.y), 1, (0, 0, 0), 3)
-                cv2.putText(stats, str(trajectory.onGround), (circle.x + 5, circle.y + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                # cv2.putText(stats, str(trajectory.onGround), (circle.x + 5, circle.y + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 parabola_y = int(a * circle.x * circle.x + b * circle.x + c)
-                cv2.circle(stats, (circle.x, parabola_y), 1, (0, 0, 255), 3)
-        cv2.imshow('statistics', stats)
+                cv2.circle(stats, (circle.x, parabola_y), 1, (circle.rgb['B'], circle.rgb['G'], circle.rgb['R']), 3)
+    else:
+        # show predicted parabola.
+        for trajectory in buffer:
+            a, b, c = trajectory.fittingParams
+            x = trajectory.getLatestCircle().x
+            ground_height = 530
+
+            if trajectory.xDirection > 0:
+                while x < width:
+                    parabola_y = int(a * x * x + b * x + c)
+                    x = x + 1
+                    if parabola_y > ground_height - trajectory.getLatestCircle().radius:
+                        # onBound
+                        D = b * b - 4 * a * (c - ground_height + trajectory.getLatestCircle().radius)
+                        if D < 0:
+                            continue
+                        hill_distance = (math.sqrt(D))/a
+                        parabola_y = int(a * (x-hill_distance) * (x-hill_distance) + b * (x-hill_distance) + c)
+                    if parabola_y > height:
+                        continue
+                    cv2.circle(stats, (x, parabola_y), 1, (0, 0, 0))
+            elif trajectory.xDirection < 0:
+                while x > 0:
+                    parabola_y = int(a * x * x + b * x + c)
+                    x = x - 1
+                    if parabola_y > ground_height - trajectory.getLatestCircle().radius:
+                        # onBound
+                        D = b * b - 4 * a * (c - ground_height + trajectory.getLatestCircle().radius)
+                        if D < 0:
+                            continue
+                        hill_distance = (math.sqrt(D)) / a
+                        parabola_y = int(a * (x + hill_distance) * (x + hill_distance) + b * (x + hill_distance) + c)
+                    if parabola_y > height:
+                        continue
+                    cv2.circle(stats, (x, parabola_y), 1, (0, 0, 0))
+    cv2.imshow('statistics', stats)
 
     key = cv2.waitKey(1)
     if key == ord('q') or key == 27:  # Esc
