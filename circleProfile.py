@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import cv2
 import time
 from ball_detection import findCircles
-from ball_identify import findID, clusterCircle, removeOldTrajectory
+from ball_identify import findID, clusterCircle, removeTrajectory
 cap = cv2.VideoCapture('AOB.mp4')
 play = 1
 cnt = 0
@@ -31,7 +31,8 @@ while(cap.isOpened()):
             for new_circle in new_circles:
                 # Add new found circles to buffer.
                 clusterCircle(buffer, new_circle)
-                removeOldTrajectory(buffer)
+                removeTrajectory(buffer, reason="old")
+                removeTrajectory(buffer, reason="onGround")
                 ID = findID(new_circle, circles, height, width)
                 circles.append(new_circle)
                 if len(circles) >= 150:
@@ -40,14 +41,14 @@ while(cap.isOpened()):
         for circle in circles:
             # Draw all circles stored in the buffer.
             cv2.circle(frame, (circle.x, circle.y), 1, (circle.rgb['B'], circle.rgb['G'], circle.rgb['R']), 3)
-            cv2.putText(frame, str(circle.x) + str(circle.color) + str(circle.y), (circle.x + 5, circle.y + 5), cv2.FONT_HERSHEY_SIMPLEX,  0.5, (circle.rgb['B'], circle.rgb['G'], circle.rgb['R']), 1, cv2.LINE_AA)
+            cv2.putText(frame, str(circle.x) + ", " + str(circle.y) + ", r" + str(circle.radius), (circle.x + 5, circle.y + 5), cv2.FONT_HERSHEY_SIMPLEX,  0.5, (circle.rgb['B'], circle.rgb['G'], circle.rgb['R']), 1, cv2.LINE_AA)
         cv2.imshow('frame', frame)
 
         for index, trajectory in enumerate(buffer):
             a, b, c = trajectory.fittingParams
             for circle in trajectory.circles:
                 cv2.circle(stats, (circle.x, circle.y), 1, (0, 0, 0), 3)
-                cv2.putText(stats, str(index), (circle.x + 5, circle.y + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(stats, str(trajectory.onGround), (circle.x + 5, circle.y + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 parabola_y = int(a * circle.x * circle.x + b * circle.x + c)
                 cv2.circle(stats, (circle.x, parabola_y), 1, (0, 0, 255), 3)
         cv2.imshow('statistics', stats)
